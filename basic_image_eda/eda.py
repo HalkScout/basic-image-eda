@@ -7,8 +7,6 @@ import cv2
 import skimage.io
 from PIL import Image
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.widgets import CheckButtons
 
 from tqdm import tqdm
 from functools import partial
@@ -122,106 +120,6 @@ class BasicImageEDA:
                 info_dict['std'] = np.repeat(info_dict['std'], 3)
 
             return info_dict
-
-    @staticmethod
-    def show_dimension_plot(info_dict, widths, heights):
-
-        plt.figure('dimension plot', figsize=(8, 6))
-
-        plt.axhline(y=info_dict['min_h'], color='orange', linestyle='--', linewidth=1)
-        plt.axhline(y=info_dict['max_h'], color='orange', linestyle='--', linewidth=1)
-        plt.axvline(x=info_dict['min_w'], color='orange', linestyle='--', linewidth=1)
-        plt.axvline(x=info_dict['max_w'], color='orange', linestyle='--', linewidth=1)
-
-        plt.fill_between([info_dict['min_w'], info_dict['max_w']], info_dict['min_h'], info_dict['max_h'],
-                         facecolor='orange', alpha=0.1)
-
-        plt.scatter(widths, heights, s=7, c='green')
-        plt.scatter(info_dict['mean_w'], info_dict['mean_h'], s=15, c='blue')
-        plt.text(info_dict['mean_w'], info_dict['mean_h'], 'mean', color='b', ha='right', va='bottom', fontsize=10)
-
-        axis = plt.axis()
-        max_axis = np.max(axis) * 1.05
-
-        if info_dict['min_h'] != info_dict['max_h']:
-            plt.text(max_axis, info_dict['min_h'], ' min %d' % info_dict['min_h'], color='r', ha='left', va='center',
-                     fontsize=8)
-            plt.text(max_axis, info_dict['max_h'], ' max %d' % info_dict['max_h'], color='r', ha='left', va='center',
-                     fontsize=8)
-        else:
-            plt.text(max_axis, info_dict['max_h'], ' fixed height:%d' % info_dict['max_h'], color='r', ha='left', va='center')
-
-        if info_dict['min_w'] != info_dict['max_w']:
-            plt.text(info_dict['min_w'], max_axis, 'min %d' % info_dict['min_w'], color='r', ha='left', va='bottom',
-                     rotation=30, fontsize=8)
-            plt.text(info_dict['max_w'], max_axis, 'max %d' % info_dict['max_w'], color='r', ha='left', va='bottom',
-                     rotation=30, fontsize=8)
-        else:
-            plt.text(info_dict['max_w'], max_axis, 'fixed width:%d' % info_dict['max_w'], color='r', ha='center', va='bottom')
-
-        plt.xlim([0, max_axis])
-        plt.ylim([0, max_axis])
-
-        plt.xlabel('width')
-        plt.ylabel('height')
-
-        plt.title('height/width scatter plot', pad=30)
-
-        plt.gca().set_aspect('equal', adjustable='box')
-
-        # plt.show()
-
-    @staticmethod
-    def show_channel_hist(rgb_count):
-        # takes longer time than show_dimension_plot()
-
-        fig = plt.figure('channel histogram', figsize=(10, 6))
-        ax = plt.axes([0.1, 0.1, 0.65, 0.8])
-
-        for i, col in enumerate(('r', 'g', 'b')):
-            ax.plot(rgb_count[i], color=col, linewidth=1)
-
-        rax = plt.axes([0.78, 0.35, 0.2, 0.3])
-        labels = ['remove_zero', 'remove_maxval']
-        check = CheckButtons(rax, labels)
-
-        flags = {'remove_zero': False, 'remove_maxval': False}
-
-        def func(label):
-            flags[label] = not flags[label]
-
-            new_rgb_count = rgb_count.copy()
-            if flags['remove_zero']:
-                new_rgb_count[:, 0] = 0
-            if flags['remove_maxval']:
-                new_rgb_count[:, -1] = 0
-
-            ax.cla()
-
-            for i, col in enumerate(('r', 'g', 'b')):
-                ax.plot(new_rgb_count[i], color=col, linewidth=1)
-
-            ax.set_xlim([0, rgb_count.shape[1]])
-            ax.set_ylim([0, None])
-
-            ax.set_xlabel('pixel value')
-            ax.set_ylabel('frequency')
-
-            ax.set_title('channelwise pixel value histogram', pad=30)
-
-            plt.show()
-
-        check.on_clicked(func)
-
-        ax.set_xlim([0, rgb_count.shape[1]])
-        ax.set_ylim([0, None])
-
-        ax.set_xlabel('pixel value')
-        ax.set_ylabel('frequency')
-
-        ax.set_title('channelwise pixel value histogram', pad=30)
-
-        plt.show()
 
     @classmethod
     def explore(cls, data_dir, extensions=None, threads=0, dimension_plot=False, channel_hist=False,
@@ -418,10 +316,7 @@ class BasicImageEDA:
             if channel_hist:
                 cls.show_channel_hist(rgb_count)
 
-            if dimension_plot or channel_hist:
-                plt.show()
-
-            return output
+            # return output
 
     @classmethod
     def check_same(cls):
